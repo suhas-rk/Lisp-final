@@ -1,0 +1,8 @@
+.DS_Store
+.vscode/
+*.yy.* 
+*.tab.*
+*.o
+output.txt
+mini-lisp
+*.output

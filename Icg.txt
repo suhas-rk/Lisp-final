@@ -1,0 +1,35 @@
+t1 = 5 + 3
+a = t1
+t2 = a + 10
+b = t2
+day = 2
+
+GOTO _TEST1
+
+_L1 :
+b = 10
+GOTO _EXIT1
+
+_L2 :
+c = 9
+GOTO _EXIT1
+
+_L3 :
+d = 7
+GOTO _EXIT1
+
+_L4 :
+s = 4
+GOTO _EXIT1
+
+_TEST1:
+if 0 = 0:
+	GOTO _L0
+if 1 = 0:
+	GOTO _L1
+if 2 = 0:
+	GOTO _L2
+if 3 = 0:
+	GOTO _L3
+
+_EXIT1 :
