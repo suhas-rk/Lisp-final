@@ -24,8 +24,10 @@
     ASTNode *ast_root;
     int icg_line_number, icg_temp, icg_branch, icg_exit, icg_test, icg_case;
     vector<int> arr1;
+    vector<int> arr2;
     int generate_code(ASTNode *);
     void print_code(ASTNode *);
+    int ret_code(ASTNode *);
     void loop_unfolder(ASTNode *, int, int);
     
     // void print_id(ASTNode *);
@@ -628,14 +630,18 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "DIFFCASE") == 0 )
         {
-            int op1 = generate_code(root->child[0]);
+            
             int branch = ++icg_branch;
             icg_case++;
             int exit = icg_exit;
             fprintf(icg_file, "\n_L%d :\n", branch);
+            arr2.push_back(branch);
             generate_code(root->child[1]);
             fprintf(icg_file, "GOTO _EXIT%d\n",exit);
-            arr1.push_back(op1);
+            
+            int x = ret_code(root->child[0]);
+            
+            arr1.push_back(x);
             
         }
         else if( strcmp(root->ope, "DIFFCASES") == 0 )
@@ -648,8 +654,9 @@ int generate_code(ASTNode *root)
         else if( strcmp(root->ope, "CASE") == 0 )
         {
             int op1 = generate_code(root->child[0]);
+            arr1.resize(0);
+            arr2.resize(0);
             
-            vector<int> arr2;
             int n,x;
             int exit = ++icg_exit;
             int test = ++icg_test;
@@ -662,18 +669,24 @@ int generate_code(ASTNode *root)
             
             generate_code(root->child[i]);
             
-            arr2.push_back(i);
+            
             
             
             }
             n = icg_case;
             fprintf(icg_file, "\n_TEST%d:\n",test);
+            
+
             for(int i=0; i < n; i++){
-            fprintf(icg_file, "if %d = %d:\n",i,arr1.at(i));
-            fprintf(icg_file, "\tGOTO _L%d\n", i);
+            fprintf(icg_file, "if ");
+            print_code(root->child[0]);
+            fprintf(icg_file, " = %d:\n",arr1.at(i));
+            fprintf(icg_file, "\tGOTO _L%d\n", arr2[i]);
             
             }
             fprintf(icg_file, "\n_EXIT%d :\n", exit);
+            
+            
             
         }
         else
@@ -714,6 +727,34 @@ void print_code(ASTNode *root)
                 break;
     }
 }
+
+int ret_code(ASTNode *root)
+{
+    
+    switch(root->type)
+    {
+        case 1: 
+                
+                return    ret_code(root->child[0]);
+                
+                break;
+        case 2: 
+                // if(!print_id_value(root->id))
+                
+                fprintf(icg_file, "%s", root->id);
+                break;
+        case 3:
+                return root->num_value;
+                break;
+        case 4:
+                fprintf(icg_file, "%d", root->bool_value);
+                break;
+        case 5:
+                fprintf(icg_file, "%s", root->str_value);
+                break;
+    }
+}
+
 
 
 void loop_unfolder(ASTNode *root, int start, int end)
