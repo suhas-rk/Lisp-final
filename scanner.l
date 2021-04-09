@@ -1,7 +1,11 @@
 %{
     #include <string.h>
+    #include <iomanip>
+    #include <iostream>
     #include "ASTTree.hh"
     #include "y.tab.h"
+    using namespace std;
+
     extern "C" {
         int yylex();
     }
@@ -147,31 +151,45 @@ void set_str(char *value)
 
 void display()
 {
+    cout << "_________________________________________\n";
+    cout << "|" << setw(7) << "ID" << "|" << setw(7) << "Line" << "|" << setw(7) << "Scope" << "|" << setw(7) << "Type" << "|" << setw(7) << "Value" << "|" << "\n" ;
+    cout << "_________________________________________\n";
     for(int i=0 ; i<table_pointer ; i++)
     {
-        printf("Id    : %s\n", symtab[i].id);
+        /*printf("Id    : %s\n", symtab[i].id);
         printf("line  : %d\n", symtab[i].line_no);
-        printf("scope : %d\n", symtab[i].scope);
+        printf("scope : %d\n", symtab[i].scope);*/
+        
+        cout << "|" << setw(7) << symtab[i].id << "|" << setw(7) << symtab[i].line_no << "|" << setw(7) << symtab[i].scope << "|" ;
         if(symtab[i].valid_value)
         {
             switch(symtab[i].type)
             {
                 case 1: 
-                        printf("type : %s\n", "NUM");
+                        /*printf("type : %s\n", "NUM");
                         printf("value : %d\n", symtab[i].num_value);
+                        break; */ 
+                        cout << "|" <<  setw(7) << "NUM" << "|" << setw(7) << symtab[i].num_value << "|" ;
                         break;
+                        
                 case 2: 
-                        printf("type : %s\n", "BOOL");
+                        /*printf("type : %s\n", "BOOL");
                         printf("value : %c\n", symtab[i].bool_value);
+                        break;*/ 
+                        cout << "|" << setw(7) << "BOOL" << "|" << setw(7) << symtab[i].bool_value << "|";
                         break;
                 case 3: 
-                        printf("type : %s\n", "STRING");
+                        /*printf("type : %s\n", "STRING");
                         printf("value : %s\n", symtab[i].str_value);
+                        break;*/ 
+                        cout << "|" << setw(7) << "STRING" << "|" << setw(7) << symtab[i].str_value << "|";
                         break;
             }
         }
-        printf("\n");
-    } 
+        cout << "\n_________________________________________\n";
+        
+    }
+    cout << "_________________________________________\n"; 
     printf("\n\n");
 }
 
