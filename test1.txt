@@ -1,5 +1,6 @@
 (setq a (+ 5 3))
 
+(setq x (not (or T F)))
 
 (setq day 2)
 (case day

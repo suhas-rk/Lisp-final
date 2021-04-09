@@ -1,33 +1,56 @@
-t1 = 5 + 3
-a = t1
-day = 2
+ +  5  3  t1 
+ =  t1  a 
+ ||  1  0  t4 
+ !  t4  t2 
+ =  t2  x 
+ =  2  day 
 
 GOTO _TEST1
 
 _L1 :
-b = 10
+ =  10  b 
 GOTO _EXIT1
 
 _L2 :
-c = 9
+ =  9  c 
 GOTO _EXIT1
 
 _L3 :
-d = 7
+ =  7  d 
 GOTO _EXIT1
 
 _L4 :
-s = 4
+ =  4  s 
 GOTO _EXIT1
 
 _TEST1:
-if day = 1:
+if  day  = 1:
 	GOTO _L1
-if day = 4:
+if  day  = 4:
 	GOTO _L2
-if day = 3:
+if  day  = 3:
 	GOTO _L3
-if day = 7:
+if  day  = 7:
 	GOTO _L4
 
 _EXIT1 :
+ >  c  16  t5 
+if t5
+GOTO _L5
+GOTO _EXIT2
+_L5 :
+ =  0  result 
+_EXIT2 :
+ +  a  10  t6 
+ =  t6  b 
+ =  b  c 
+ >  c  16  t7 
+if t7
+GOTO _L6
+GOTO _L7
+_L6 :
+ =  0  result 
+GOTO _EXIT3
+_L7 :
+ =  1  result 
+_EXIT3 :

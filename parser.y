@@ -445,24 +445,26 @@ int generate_code(ASTNode *root)
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
-            fprintf(icg_file, "t%d = ", tempvar);
+            fprintf(icg_file, " %s ", root->ope);
+            
             if( op0 > 0)
             {
-                fprintf(icg_file, "t%d", op0);
+                fprintf(icg_file, " t%d ", op0);
             }
             else
             {
                 print_code(root->child[0]);
             }
-            fprintf(icg_file, " %s ", root->ope);
+            
             if( op1 > 0)
             {
-                fprintf(icg_file, "t%d", op1);
+                fprintf(icg_file, " t%d ", op1);
             }
             else
             {
                 print_code(root->child[1]);
             }
+            fprintf(icg_file, " t%d ", tempvar);
             fprintf(icg_file, "\n");
             return tempvar;
         }
@@ -471,24 +473,26 @@ int generate_code(ASTNode *root)
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
-            fprintf(icg_file, "t%d = ", tempvar);
+            
+            fprintf(icg_file, " == ");
             if( op0 > 0)
             {
-                fprintf(icg_file, "t%d", op0);
+                fprintf(icg_file, " t%d ", op0);
             }
             else
             {
                 print_code(root->child[0]);
             }
-            fprintf(icg_file, " == ");
+            
             if( op1 > 0)
             {
-                fprintf(icg_file, "t%d", op1);
+                fprintf(icg_file, " t%d ", op1);
             }
             else
             {
                 print_code(root->child[1]);
             }
+            fprintf(icg_file, " t%d ", tempvar);
             fprintf(icg_file, "\n");
             return tempvar;
         }
@@ -497,7 +501,7 @@ int generate_code(ASTNode *root)
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
-            fprintf(icg_file, "t%d = ", tempvar);
+            fprintf(icg_file, " && ");
             if( op0 > 0)
             {
                 fprintf(icg_file, "t%d", op0);
@@ -506,7 +510,7 @@ int generate_code(ASTNode *root)
             {
                 print_code(root->child[0]);
             }
-            fprintf(icg_file, " && ");
+            
             if( op1 > 0)
             {
                 fprintf(icg_file, "t%d", op1);
@@ -515,6 +519,7 @@ int generate_code(ASTNode *root)
             {
                 print_code(root->child[1]);
             }
+            fprintf(icg_file, "t%d  ", tempvar);
             fprintf(icg_file, "\n");
             return tempvar;
         }
@@ -523,7 +528,7 @@ int generate_code(ASTNode *root)
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
-            fprintf(icg_file, "t%d = ", tempvar);
+            fprintf(icg_file, " || ");
             if( op0 > 0)
             {
                 fprintf(icg_file, "t%d", op0);
@@ -532,7 +537,7 @@ int generate_code(ASTNode *root)
             {
                 print_code(root->child[0]);
             }
-            fprintf(icg_file, " || ");
+            
             if( op1 > 0)
             {
                 fprintf(icg_file, "t%d", op1);
@@ -541,6 +546,7 @@ int generate_code(ASTNode *root)
             {
                 print_code(root->child[1]);
             }
+            fprintf(icg_file, " t%d ", tempvar);
             fprintf(icg_file, "\n");
             return tempvar;
         }
@@ -551,35 +557,39 @@ int generate_code(ASTNode *root)
             int op0 = generate_code(root->child[0]);
             if( op0 <= 0)
             {
-                fprintf(icg_file, "t%d = ", notvar);
+                fprintf(icg_file, " = ");
                 print_code(root->child[0]);
+                fprintf(icg_file, " t%d ", notvar);
+                
                 fprintf(icg_file, "\n");
             }
-            fprintf(icg_file, "t%d = ! ", tempvar);
+            fprintf(icg_file, " ! ");
             if( op0 > 0)
             {
-                fprintf(icg_file, "t%d", op0);
+                fprintf(icg_file, " t%d ", op0);
             }
             else
             {
-                fprintf(icg_file, "t%d", notvar);
+                fprintf(icg_file, " t%d ", notvar);
             }
+            fprintf(icg_file, " t%d ", tempvar);
             fprintf(icg_file, "\n");
             return tempvar;
         }
         else if( strcmp(root->ope, "SET_STMT") == 0 )
         {
             int op1 = generate_code(root->child[1]);
-            print_code(root->child[0]);
+            
             fprintf(icg_file, " = ");
             if( op1 > 0)
             {
-                fprintf(icg_file, "t%d", op1);
+                fprintf(icg_file, " t%d ", op1);
             }
             else
             {
                 print_code(root->child[1]);
             }
+            print_code(root->child[0]);
             fprintf(icg_file, "\n");
         }
         else if( strcmp(root->ope, "IF_ELSE_EXP") == 0 )
@@ -714,16 +724,16 @@ void print_code(ASTNode *root)
                 break;
         case 2: 
                 // if(!print_id_value(root->id))
-                fprintf(icg_file, "%s", root->id);
+                fprintf(icg_file, " %s ", root->id);
                 break;
         case 3:
-                fprintf(icg_file, "%d", root->num_value);
+                fprintf(icg_file, " %d ", root->num_value);
                 break;
         case 4:
-                fprintf(icg_file, "%d", root->bool_value);
+                fprintf(icg_file, " %d ", root->bool_value);
                 break;
         case 5:
-                fprintf(icg_file, "%s", root->str_value);
+                fprintf(icg_file, " %s ", root->str_value);
                 break;
     }
 }
