@@ -1,7 +1,10 @@
 %{
 	#define YYSTYPE char*
 	#include "y.tab.h"
-    #include <stdio.h>
+    #include <cstdio>
+
+    using namespace std;
+
     extern void yyerror(const char *);
     int line = 1;
 %}

@@ -1,7 +1,10 @@
 %{
-	#include <stdio.h>
-	#include <string.h>
-	#include<stdlib.h>
+	#include <cstdio>
+	#include <cstring>
+	#include <cstdlib>
+
+	using namespace std;
+
 	void yyerror(const char *);
 	#define YYSTYPE char*
 	int yylex();
@@ -220,7 +223,11 @@ char* getVal(char* name)
 			return table[i].value;
 		}
 	}
-	return "a";
+
+	// This will eventually cause a memory leak so yikes
+	char* emergencyRetString = (char*) malloc(2 * sizeof(char));
+	strcpy(emergencyRetString, "a");
+	return emergencyRetString;
 }
 char* calculate(char* opr,char* op1,char* op2)
 {	
