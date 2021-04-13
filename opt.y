@@ -40,6 +40,8 @@
 	int top = -1;
 	int stop_prop = 0;
 	int ignore_until_label = 0;
+	int op_enabled = 0;
+	int nasm_enabled = 0;
 	char* next_label = NULL;
 
 	int calculate_val(char*, int, int);
@@ -62,7 +64,7 @@ start
 	:T_PRINT T_STRING   								{
 															fprintf(opt,"print ( %s )\n",$2);
 															
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																Precomp_dt print_constant;
 																print_constant.type = STRINGVAL;
 																print_constant.value.str_val = $2;
@@ -72,7 +74,7 @@ start
 	|T_PRINT T_NUMBER   								{
 															fprintf(opt,"print ( %s )\n",$2);
 															
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																Precomp_dt print_constant;
 																print_constant.type = INTVAL;
 																print_constant.value.i_val = atoi($2);
@@ -80,7 +82,7 @@ start
 															}
 														}
 	|T_PRINT T_IDENTIFIER   							{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($2);
 																auto precomp_data = precomp_st.find(identifier);
 																if (precomp_data != precomp_st.end()) {
@@ -98,7 +100,7 @@ start
 															}
 														}
 	|T_NOT T_IDENTIFIER	T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier1($2);
 																string identifier2($3);
 																auto precomp_data = precomp_st.find(identifier1);
@@ -120,7 +122,7 @@ start
 															fprintf(opt,"! %s %s\n",$2,$3);
 														}
 	|T_EQUAL T_STRING T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($3);
 																Precomp_dt str_constant;
 																str_constant.type = STRINGVAL;
@@ -140,7 +142,7 @@ start
 															}
 														}
 	|T_EQUAL T_NUMBER T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($3);
 																Precomp_dt int_constant;
 																int_constant.type = INTVAL;
@@ -160,7 +162,7 @@ start
 															}
 														}
 	|T_EQUAL T_IDENTIFIER T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier1($2);
 																string identifier2($3);
 																auto precomp_data = precomp_st.find(identifier1);
@@ -181,7 +183,7 @@ start
 															}
 														}
 	|opr T_IDENTIFIER T_IDENTIFIER T_IDENTIFIER  				{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier1($2);
 																string identifier2($3);
 																auto precomp_data1 = precomp_st.find(identifier1);
@@ -217,7 +219,7 @@ start
 															}
 														}
 	|opr T_NUMBER T_IDENTIFIER T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier1($3);
 																auto precomp_data = precomp_st.find(identifier1);
 																int ival = atoi($2);
@@ -249,7 +251,7 @@ start
 															}
 														}
 	|opr T_IDENTIFIER T_NUMBER T_IDENTIFIER  					{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier1($2);
 																auto precomp_data = precomp_st.find(identifier1);
 																int ival = atoi($3);
@@ -281,7 +283,7 @@ start
 															}
 														}
 	|opr T_NUMBER T_NUMBER T_IDENTIFIER			{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($4);
 																int ival1 = atoi($2);
 																int ival2 = atoi($3);
@@ -304,14 +306,14 @@ start
 															}
 														}
 	|T_GOTO T_IDENTIFIER 			{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																ignore_until_label = 1;
 																next_label = $2;
 															}
 															fprintf(opt,"%s %s\n",$1,$2);
 														}
 	|T_IF T_IDENTIFIER T_GOTO T_IDENTIFIER 				{
-															if (!ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($2);
 																auto precomp_data = precomp_st.find(identifier);
 																if (precomp_data != precomp_st.end()) {
@@ -327,7 +329,7 @@ start
 															fprintf(opt,"%s %s \n%s %s\n",$1,$2,$3,$4);
 														}
 	|T_IDENTIFIER T_COLON 								{
-															if (ignore_until_label) {
+															if ((nasm_enabled || op_enabled) && ignore_until_label) {
 																if(strcmp($1, next_label) == 0) {
 																	ignore_until_label = 0;
 																	next_label = NULL;
@@ -353,27 +355,72 @@ opr
 	;
 %%
 
-int main()
+int main(int argc, char **argv)
 {
-opt = fopen("Optimize.txt", "w");
-if(!yyparse())
-{	printf("-----------------------------------\n");
-	printf("Intermediate Code Optimized\nPlease check Optimize.txt for the Optimized IC");
-	printf("\n-----------------------------------\n");
-}
+	for (int i = 0; i < argc; ++i) {
+		if (strcmp(argv[i], "--optimize-precomp") == 0 ||
+			strcmp(argv[i], "-OP") == 0 ||
+			strcmp(argv[i], "-Op") == 0 ||
+			strcmp(argv[i], "-oP") == 0 ||
+			strcmp(argv[i], "-op") == 0) {
+				op_enabled = 1;
+			}
 
-printf("\n-------------Super Optimized Codegen!-------------\n");
-for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
-	Precomp_dt data = *iter;
-	if (data.type == STRINGVAL) {
-		printf("print %s\n", data.value.str_val);
-	} else {
-		printf("print %d\n", data.value.i_val);
+		if (strcmp(argv[i], "--gen-nasm") == 0 ||
+			strcmp(argv[i], "-nasm") == 0) {
+				nasm_enabled = 1;
+			}
 	}
-}
-printf("\n--------------------------------------------------\n");
+	opt = fopen("Optimize.txt", "w");
+	if(!yyparse())
+	{	printf("-----------------------------------------------------------------\n");
+		printf("Intermediate Code Optimized\nPlease check Optimize.txt for the Optimized IC");
+		printf("\n-----------------------------------------------------------------\n");
+	}
 
-return 1;
+	if (op_enabled) {
+		FILE* super_opt_file = fopen("super_optimized.txt", "w");
+
+		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
+			Precomp_dt data = *iter;
+			if (data.type == STRINGVAL) {
+				fprintf(super_opt_file, "print %s\n", data.value.str_val);
+			} else {
+				fprintf(super_opt_file, "print %d\n", data.value.i_val);
+			}
+		}
+
+		fclose(super_opt_file);
+		printf("\n-----------------------------------------------------------------\n");
+		printf("Intermediate Code - Super Optimized\nPlease check super_optimized.txt for the Super Optimized IC.");
+		printf("\n-----------------------------------------------------------------\n");
+	}
+
+	if (nasm_enabled) {
+		FILE* nasm_file = fopen("lisp.asm", "w");
+
+		fprintf(nasm_file, "\tglobal main\n\textern puts\n\n\tsection .text\nmain:\n");
+		for (int i = 0; i < print_l.size(); ++i) {
+			fprintf(nasm_file, "\tmov rdi, message%d\n\tcall puts\n", i);
+		}
+
+		fprintf(nasm_file, "\tret\n\tsection .data\n");
+		for (int i = 0; i < print_l.size(); ++i) {
+			Precomp_dt data = print_l[i];
+			if (data.type == INTVAL) {
+				fprintf(nasm_file, "message%d: db \"%d\", 0\n", i, data.value.i_val);
+			} else {
+				fprintf(nasm_file, "message%d: db %s, 0\n", i, data.value.str_val);
+			}
+		}
+
+		fclose(nasm_file);
+		printf("\n-----------------------------------------------------------------\n");
+		printf("x86 NASM machine code generated for GNU/Linux\nPlease check lisp.asm for the generated NASM assembly code.");
+		printf("\n-----------------------------------------------------------------\n");
+	}
+
+	return 1;
 }
 
 void yyerror(const char *msg)
