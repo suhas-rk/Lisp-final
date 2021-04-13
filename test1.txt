@@ -4,10 +4,16 @@
 
 (setq day 2)
 (case day
-(1 (setq b 10))
+(1 (case day
+    (1 (case day
+    (1 (setq b 10)))))
+)
 (4 (setq c 9))
-(3 (setq d 7))
-(7 (setq s 4))
+(3 (if (> c 16)
+    (case day
+    (1 (setq s 4)))))
+(7 (case day
+    (1 (setq s 4))))
 )
 
 (if (> c 16)

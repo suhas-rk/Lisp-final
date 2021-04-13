@@ -9,49 +9,91 @@ if t5
 	GOTO _L1
 == day 4 t6
 if t6
-	GOTO _L2
+	GOTO _L4
 == day 3 t7
 if t7
-	GOTO _L3
+	GOTO _L5
 == day 7 t8
 if t8
-	GOTO _L4
+	GOTO _L8
 GOTO _EXIT1
 
 _L1 :
- =  10  b 
-GOTO _EXIT1
+== day 1 t9
+if t9
+	GOTO _L2
+GOTO _EXIT2
 
 _L2 :
- =  9  c 
-GOTO _EXIT1
+== day 1 t10
+if t10
+	GOTO _L3
+GOTO _EXIT3
 
 _L3 :
- =  7  d 
+ =  10  b 
+GOTO _EXIT3
+
+_EXIT3 :
+GOTO _EXIT2
+
+_EXIT2 :
 GOTO _EXIT1
 
 _L4 :
- =  4  s 
-GOTO _EXIT1
+ =  9  c 
+GOTO _EXIT3
 
-_EXIT1 :
- >  c  16  t9 
-if t9
-GOTO _L5
-GOTO _EXIT2
 _L5 :
- =  0  result 
-_EXIT2 :
- +  a  10  t10 
- =  t10  b 
- =  b  c 
  >  c  16  t11 
 if t11
 GOTO _L6
-GOTO _L7
+GOTO _EXIT4
 _L6 :
- =  0  result 
-GOTO _EXIT3
+== day 1 t12
+if t12
+	GOTO _L7
+GOTO _EXIT5
+
 _L7 :
+ =  4  s 
+GOTO _EXIT5
+
+_EXIT5 :
+_EXIT4 :
+GOTO _EXIT3
+
+_L8 :
+== day 1 t13
+if t13
+	GOTO _L9
+GOTO _EXIT6
+
+_L9 :
+ =  4  s 
+GOTO _EXIT6
+
+_EXIT6 :
+GOTO _EXIT5
+
+_EXIT1 :
+ >  c  16  t14 
+if t14
+GOTO _L10
+GOTO _EXIT7
+_L10 :
+ =  0  result 
+_EXIT7 :
+ +  a  10  t15 
+ =  t15  b 
+ =  b  c 
+ >  c  16  t16 
+if t16
+GOTO _L11
+GOTO _L12
+_L11 :
+ =  0  result 
+GOTO _EXIT8
+_L12 :
  =  1  result 
-_EXIT3 :
+_EXIT8 :

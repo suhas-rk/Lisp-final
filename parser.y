@@ -7,6 +7,13 @@
     #include "ASTTree.hh"
     #include<vector>
     using namespace std;
+
+    #ifdef __linux__
+    #define TEMP_FILE_LOCATION "/dev/null"
+    #else
+    #define TEMP_FILE_LOCATION "temp.txt"
+    #endif
+
     extern "C" {
         extern int yylex();
         void yyerror(const char *message);
@@ -20,11 +27,11 @@
     extern char* ERROR_TOKEN;
     extern char* COMMENT_OPEN_ERROR_TOKEN;
     extern void display();
-    FILE *icg_file;
+    FILE *icg_file, *cp_icg_file, *temp_file;
     ASTNode *ast_root;
-    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_case;
-    vector<int> arr1;
-    vector<int> arr2;
+    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_case[100], icg_switch_nesting;
+    vector<int> arr1[100];
+    vector<int> arr2[100];
     int generate_code(ASTNode *);
     void print_code(ASTNode *);
     int ret_code(ASTNode *);
@@ -396,9 +403,11 @@ int main(int argc, char *argv[]) {
     icg_line_number = 0;
     icg_branch = 0;
     icg_exit = 0;
-    icg_case = 0;
     icg_temp = 0;
+    icg_switch_nesting = -1;
 	icg_file = fopen("Icg.txt", "w");
+    temp_file = fopen(TEMP_FILE_LOCATION, "w");
+    cp_icg_file = NULL;
     if(yyparse()==1)
 	{
         // display();
@@ -415,6 +424,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	fclose(icg_file);
+    fclose(temp_file);
+
+#ifndef __linux__
+    remove(TEMP_FILE_LOCATION);
+#endif
+
     // printf("Printing IC:\n\n");
 	// system("cat icg.txt");
     printf("\n\n");
@@ -641,16 +656,16 @@ int generate_code(ASTNode *root)
         {
             
             int branch = ++icg_branch;
-            icg_case++;
+            icg_case[icg_switch_nesting]++;
             int exit = icg_exit;
             fprintf(icg_file, "\n_L%d :\n", branch);
-            arr2.push_back(branch);
+            arr2[icg_switch_nesting].push_back(branch);
             generate_code(root->child[1]);
             fprintf(icg_file, "GOTO _EXIT%d\n",exit);
             
             int x = ret_code(root->child[0]);
             
-            arr1.push_back(x);
+            arr1[icg_switch_nesting].push_back(x);
             
         }
         else if( strcmp(root->ope, "DIFFCASES") == 0 )
@@ -662,34 +677,40 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "CASE") == 0 )
         {
+            ++icg_switch_nesting;
             int op1 = generate_code(root->child[0]);
-            arr1.resize(0);
-            arr2.resize(0);
+            arr1[icg_switch_nesting].resize(0);
+            arr2[icg_switch_nesting].resize(0);
             
             int n,x;
             int exit = ++icg_exit;
-            icg_case=0;
+            icg_case[icg_switch_nesting]=0;
 
             // Checkpoint state
-            FILE *cp_icg_file = icg_file;
             int cp_icg_temp = icg_temp;
             int cp_icg_branch = icg_branch;
             int cp_icg_exit = icg_exit;
+            int flag = 0;
 
-            icg_file = fopen("temp.txt", "w");
+            if (cp_icg_file == NULL) {
+                cp_icg_file = icg_file;
+                icg_file = temp_file;
+                flag = 1;
+            }
             
             // Generate code to populate arr1 and arr2
             n = root->number_of_children;
             for(int i=0;i < n; i++){
                 generate_code(root->child[i]);
             }
-            n = icg_case;
+            n = icg_case[icg_switch_nesting];
             
-            fclose(icg_file);
-            remove("temp.txt");
+            if (flag) {
+                icg_file = cp_icg_file;
+                cp_icg_file = NULL;
+            }
 
             // Restore state
-            icg_file = cp_icg_file;
             icg_temp = cp_icg_temp;
             icg_branch = cp_icg_branch;
             icg_exit = cp_icg_exit;
@@ -698,8 +719,8 @@ int generate_code(ASTNode *root)
                 int tempvar = ++icg_temp;
                 fprintf(icg_file, "==");
                 print_code(root->child[0]);
-                fprintf(icg_file, "%d t%d\n", arr1.at(i), tempvar);
-                fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[i]);
+                fprintf(icg_file, "%d t%d\n", arr1[icg_switch_nesting][i], tempvar);
+                fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[icg_switch_nesting][i]);
             }
             fprintf(icg_file, "GOTO _EXIT%d\n",exit);
 
@@ -707,9 +728,10 @@ int generate_code(ASTNode *root)
             for(int i=0;i < n; i++){
                 generate_code(root->child[i]);
             }
-            n = icg_case;
+            n = icg_case[icg_switch_nesting];
 
             fprintf(icg_file, "\n_EXIT%d :\n", exit);
+            --icg_switch_nesting;
         }
         else
         {
