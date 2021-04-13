@@ -42,7 +42,7 @@ GOTO _EXIT1
 
 _L4 :
  =  9  c 
-GOTO _EXIT3
+GOTO _EXIT1
 
 _L5 :
  >  c  16  t11 
@@ -61,7 +61,7 @@ GOTO _EXIT5
 
 _EXIT5 :
 _EXIT4 :
-GOTO _EXIT3
+GOTO _EXIT1
 
 _L8 :
 == day 1 t13
@@ -74,7 +74,7 @@ _L9 :
 GOTO _EXIT6
 
 _EXIT6 :
-GOTO _EXIT5
+GOTO _EXIT1
 
 _EXIT1 :
  >  c  16  t14 

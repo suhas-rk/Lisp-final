@@ -29,7 +29,8 @@
     extern void display();
     FILE *icg_file, *cp_icg_file, *temp_file;
     ASTNode *ast_root;
-    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_case[100], icg_switch_nesting;
+    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_switch_nesting;
+    int icg_case[100], icg_case_exit[100]; 
     vector<int> arr1[100];
     vector<int> arr2[100];
     int generate_code(ASTNode *);
@@ -661,7 +662,7 @@ int generate_code(ASTNode *root)
             fprintf(icg_file, "\n_L%d :\n", branch);
             arr2[icg_switch_nesting].push_back(branch);
             generate_code(root->child[1]);
-            fprintf(icg_file, "GOTO _EXIT%d\n",exit);
+            fprintf(icg_file, "GOTO _EXIT%d\n", icg_case_exit[icg_switch_nesting]);
             
             int x = ret_code(root->child[0]);
             
@@ -723,8 +724,10 @@ int generate_code(ASTNode *root)
                 fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[icg_switch_nesting][i]);
             }
             fprintf(icg_file, "GOTO _EXIT%d\n",exit);
-
+            
+            icg_case_exit[icg_switch_nesting] = exit;
             n = root->number_of_children;
+
             for(int i=0;i < n; i++){
                 generate_code(root->child[i]);
             }
