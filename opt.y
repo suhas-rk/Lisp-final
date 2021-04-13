@@ -4,7 +4,6 @@
 	#include<stdlib.h>
 	void yyerror(const char *);
 	#define YYSTYPE char*
-	FILE *yyin;
 	int yylex();
 	extern int line;
 	FILE *opt;
@@ -23,8 +22,6 @@
 	char* calculate(char*,char*,char*);
 	char* Not(char*);
 %}
-
-%error-verbose
 
 %token T_EQUAL T_NOT T_COLON T_STRING T_PRINT T_IDENTIFIER T_NUMBER T_GOTO T_IF T_EQ_OP T_NE_OP T_OR_OP T_AND_OP T_MOD_OP
 
@@ -52,85 +49,85 @@ start
 																fprintf(opt,"print ( %s )\n",getVal($2));
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_NOT T_IDENTIFIER			{
+	|T_NOT T_IDENTIFIER	T_IDENTIFIER  					{
 															stop_prop = 1;
-															fprintf(opt,"%s = ! %s\n",$1,$4);
+															fprintf(opt,"! %s %s\n",$2,$3);
 														}
-	|T_IDENTIFIER T_EQUAL T_STRING  					{
+	|T_EQUAL T_STRING T_IDENTIFIER  					{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s\n",$1,$3);
+																fprintf(opt,"= %s %s\n",$2,$3);
 															}
 															else
 															{
-																add_or_update($1,$3);
-																fprintf(opt,"%s = %s\n",$1,$3);
+																add_or_update($3,$2);
+																fprintf(opt,"= %s %s\n",$2,$3);
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_NUMBER  					{
+	|T_EQUAL T_NUMBER T_IDENTIFIER  					{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s\n",$1,$3);
+																fprintf(opt,"= %s %s\n",$2,$3);
 															}
 															else
 															{
-																add_or_update($1,$3);
-																fprintf(opt,"%s = %s\n",$1,$3);
+																add_or_update($3,$2);
+																fprintf(opt,"= %s %s\n",$2,$3);
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_IDENTIFIER 					{
+	|T_EQUAL T_IDENTIFIER T_IDENTIFIER  					{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s\n",$1,$3);
+																fprintf(opt,"= %s %s\n",$2,$3);
 															}
 															else
 															{
-																add_or_update($1,getVal($3));
-																fprintf(opt,"%s = %s\n",$1,getVal($3));	
+																add_or_update($3,getVal($2));
+																fprintf(opt,"= %s %s\n",getVal($2),$3);	
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_IDENTIFIER opr T_IDENTIFIER {
+	|opr T_IDENTIFIER T_IDENTIFIER T_IDENTIFIER  				{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s %s %s\n",$1,$3,$4,$5);
+																fprintf(opt,"%s %s %s %s\n",$1,$2,$3,$4);
 															}
 															else
 															{
-																add_or_update($1,calculate($4,getVal($3),getVal($5)));
-																fprintf(opt,"%s = %s\n",$1,calculate($4,getVal($3),getVal($5)));
+																add_or_update($4,calculate($1,getVal($2),getVal($3)));
+																fprintf(opt,"= %s %s\n",calculate($1,getVal($2),getVal($3)),$4);
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_NUMBER opr T_IDENTIFIER		{
+	|opr T_NUMBER T_IDENTIFIER T_IDENTIFIER  					{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s %s %s\n",$1,$3,$4,$5);
+																fprintf(opt,"%s %s %s %s\n",$1,$2,$3,$4);
 															}
 															else
 															{
-																add_or_update($1,calculate($4,$3,getVal($5)));
-																fprintf(opt,"%s = %s\n",$1,calculate($4,$3,getVal($5)));
+																add_or_update($4,calculate($1,$2,getVal($3)));
+																fprintf(opt,"= %s %s\n",calculate($1,$2,getVal($3)), $4);
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_IDENTIFIER opr T_NUMBER		{
+	|opr T_IDENTIFIER T_NUMBER T_IDENTIFIER  					{
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s %s %s\n",$1,$3,$4,$5);
+																fprintf(opt,"%s %s %s %s\n",$1,$2,$3,$4);
 															}
 															else
 															{
-																add_or_update($1,calculate($4,getVal($3),$5));
-																fprintf(opt,"%s = %s\n",$1,calculate($4,getVal($3),$5));
+																add_or_update($4,calculate($1,getVal($2),$3));
+																fprintf(opt,"= %s %s\n",calculate($1,getVal($2),$3),$4);
 															}
 														}
-	|T_IDENTIFIER T_EQUAL T_NUMBER opr T_NUMBER			{	
+	|opr T_NUMBER T_NUMBER T_IDENTIFIER			{	
 															if(stop_prop)
 															{
-																fprintf(opt,"%s = %s\n",$1,calculate($4,$3,$5));
+																fprintf(opt,"= %s %s\n", calculate($1,$2,$3), $4);
 															}
 															else
 															{
-																add_or_update($1,calculate($4,$3,$5));
-																fprintf(opt,"%s = %s\n",$1,calculate($4,$3,$5));
+																add_or_update($4,calculate($1,$2,$3));
+																fprintf(opt,"= %s %s\n",calculate($1,$2,$3),$4);
 															}
 														}
 	|T_GOTO T_IDENTIFIER 								{
@@ -164,7 +161,6 @@ opr
 int main()
 {
 opt = fopen("Optimize.txt", "w");
-yyin = fopen("icg.txt","r");
 if(!yyparse())
 {	printf("-----------------------------------\n");
 	printf("Intermediate Code Optimized\nPlease check Optimize.txt for the Optimized IC");
@@ -182,6 +178,7 @@ void yyerror(const char *msg)
 	printf("ERROR\n");
 	printf("------\n");
 	printf("Parsing Unsuccesful\n");
+	printf("Message: %s\n", msg);
 	printf("Syntax Error at line %d\n\n",line-1);
 
 }

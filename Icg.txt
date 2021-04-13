@@ -24,28 +24,32 @@ _L4 :
 GOTO _EXIT1
 
 _TEST1:
-if  day  = 1:
+== day 1 t5
+if t5
 	GOTO _L1
-if  day  = 4:
+== day 4 t6
+if t6
 	GOTO _L2
-if  day  = 3:
+== day 3 t7
+if t7
 	GOTO _L3
-if  day  = 7:
+== day 7 t8
+if t8
 	GOTO _L4
 
 _EXIT1 :
- >  c  16  t5 
-if t5
+ >  c  16  t9 
+if t9
 GOTO _L5
 GOTO _EXIT2
 _L5 :
  =  0  result 
 _EXIT2 :
- +  a  10  t6 
- =  t6  b 
+ +  a  10  t10 
+ =  t10  b 
  =  b  c 
- >  c  16  t7 
-if t7
+ >  c  16  t11 
+if t11
 GOTO _L6
 GOTO _L7
 _L6 :

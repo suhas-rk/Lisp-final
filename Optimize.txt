@@ -1,17 +1,53 @@
-t1 = 8
-a = 8
-t2 = 18
-b = 18
-c = 18
-t3 = 1
-if t3 
-GOTO _L1
-GOTO _L2
+= 8 t1
+= 8 a
+= 1 t4
+! t4 t2
+= t2 x
+= 2 day
+GOTO _TEST1
 _L1 :
-result = 0
+= 10 b
 GOTO _EXIT1
 _L2 :
-result = 1
+= 9 c
+GOTO _EXIT1
+_L3 :
+= 7 d
+GOTO _EXIT1
+_L4 :
+= 4 s
+GOTO _EXIT1
+_TEST1 :
+== day 1 t5
+if t5 
+GOTO _L1
+== day 4 t6
+if t6 
+GOTO _L2
+== day 3 t7
+if t7 
+GOTO _L3
+== day 7 t8
+if t8 
+GOTO _L4
 _EXIT1 :
-print ( result )
-print ( "Hello World" )
+> c 16 t9
+if t9 
+GOTO _L5
+GOTO _EXIT2
+_L5 :
+= 0 result
+_EXIT2 :
++ a 10 t10
+= t10 b
+= b c
+> c 16 t11
+if t11 
+GOTO _L6
+GOTO _L7
+_L6 :
+= 0 result
+GOTO _EXIT3
+_L7 :
+= 1 result
+_EXIT3 :

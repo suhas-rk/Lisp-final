@@ -44,3 +44,8 @@ id          ("_"|{letter})({letter}|{digit}|"-")*
 .					        { printf("No Match, Invalid Expression %s\n", yytext); }
 
 %%
+
+int yywrap()
+{
+    return(1);
+}

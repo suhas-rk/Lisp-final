@@ -676,23 +676,18 @@ int generate_code(ASTNode *root)
             
             n = root->number_of_children;
             for(int i=0;i < n; i++){
-            
-            generate_code(root->child[i]);
-            
-            
-            
-            
+                generate_code(root->child[i]);
             }
             n = icg_case;
             fprintf(icg_file, "\n_TEST%d:\n",test);
             
 
             for(int i=0; i < n; i++){
-            fprintf(icg_file, "if ");
-            print_code(root->child[0]);
-            fprintf(icg_file, " = %d:\n",arr1.at(i));
-            fprintf(icg_file, "\tGOTO _L%d\n", arr2[i]);
-            
+                int tempvar = ++icg_temp;
+                fprintf(icg_file, "==");
+                print_code(root->child[0]);
+                fprintf(icg_file, "%d t%d\n", arr1.at(i), tempvar);
+                fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[i]);
             }
             fprintf(icg_file, "\n_EXIT%d :\n", exit);
             
@@ -763,6 +758,8 @@ int ret_code(ASTNode *root)
                 fprintf(icg_file, "%s", root->str_value);
                 break;
     }
+
+    return 0;
 }
 
 
