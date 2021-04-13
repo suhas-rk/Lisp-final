@@ -4,20 +4,6 @@
 ! t4 t2
 = t2 x
 = 2 day
-GOTO _TEST1
-_L1 :
-= 10 b
-GOTO _EXIT1
-_L2 :
-= 9 c
-GOTO _EXIT1
-_L3 :
-= 7 d
-GOTO _EXIT1
-_L4 :
-= 4 s
-GOTO _EXIT1
-_TEST1 :
 == day 1 t5
 if t5 
 GOTO _L1
@@ -30,6 +16,19 @@ GOTO _L3
 == day 7 t8
 if t8 
 GOTO _L4
+GOTO _EXIT1
+_L1 :
+= 10 b
+GOTO _EXIT1
+_L2 :
+= 9 c
+GOTO _EXIT1
+_L3 :
+= 7 d
+GOTO _EXIT1
+_L4 :
+= 4 s
+GOTO _EXIT1
 _EXIT1 :
 > c 16 t9
 if t9 

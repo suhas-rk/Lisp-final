@@ -22,7 +22,7 @@
     extern void display();
     FILE *icg_file;
     ASTNode *ast_root;
-    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_test, icg_case;
+    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_case;
     vector<int> arr1;
     vector<int> arr2;
     int generate_code(ASTNode *);
@@ -397,7 +397,6 @@ int main(int argc, char *argv[]) {
     icg_branch = 0;
     icg_exit = 0;
     icg_case = 0;
-    icg_test = 0;
     icg_temp = 0;
 	icg_file = fopen("Icg.txt", "w");
     if(yyparse()==1)
@@ -669,18 +668,31 @@ int generate_code(ASTNode *root)
             
             int n,x;
             int exit = ++icg_exit;
-            int test = ++icg_test;
             icg_case=0;
+
+            // Checkpoint state
+            FILE *cp_icg_file = icg_file;
+            int cp_icg_temp = icg_temp;
+            int cp_icg_branch = icg_branch;
+            int cp_icg_exit = icg_exit;
+
+            icg_file = fopen("temp.txt", "w");
             
-            fprintf(icg_file, "\nGOTO _TEST%d\n",test);
-            
+            // Generate code to populate arr1 and arr2
             n = root->number_of_children;
             for(int i=0;i < n; i++){
                 generate_code(root->child[i]);
             }
             n = icg_case;
-            fprintf(icg_file, "\n_TEST%d:\n",test);
             
+            fclose(icg_file);
+            remove("temp.txt");
+
+            // Restore state
+            icg_file = cp_icg_file;
+            icg_temp = cp_icg_temp;
+            icg_branch = cp_icg_branch;
+            icg_exit = cp_icg_exit;
 
             for(int i=0; i < n; i++){
                 int tempvar = ++icg_temp;
@@ -689,10 +701,15 @@ int generate_code(ASTNode *root)
                 fprintf(icg_file, "%d t%d\n", arr1.at(i), tempvar);
                 fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[i]);
             }
+            fprintf(icg_file, "GOTO _EXIT%d\n",exit);
+
+            n = root->number_of_children;
+            for(int i=0;i < n; i++){
+                generate_code(root->child[i]);
+            }
+            n = icg_case;
+
             fprintf(icg_file, "\n_EXIT%d :\n", exit);
-            
-            
-            
         }
         else
         {
