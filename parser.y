@@ -133,11 +133,6 @@ PRINT_STMT          : '(' T_print EXP ')'            {
                                                         strcpy(temp, "PRINT_STMT");
                                                         $$ = makeNode1(temp, $3);
                                                     }
-                    | '(' T_print VARIABLE ')'      {
-                                                        char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "PRINT_STMT");
-                                                        $$ = makeNode1(temp, $3);
-                                                    }
                     ;
 EXP                 : BOOL                          {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
@@ -444,16 +439,17 @@ int generate_code(ASTNode *root)
         if( strcmp(root->ope, "PRINT_STMT") == 0 )
         {
             int op0 = generate_code(root->child[0]);
-            fprintf(icg_file, "print ( ");
             if( op0 > 0)
             {
-                fprintf(icg_file, "t%d", op0);
+                fprintf(icg_file, "param t%d\n", op0);
             }
             else
             {
+                fprintf(icg_file, "param");
                 print_code(root->child[0]);
+                fprintf(icg_file, "\n");
             }
-            fprintf(icg_file, " )\n");
+            fprintf(icg_file, "call (print,1)\n");
         }
         else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0)
         {

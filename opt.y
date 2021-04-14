@@ -29,6 +29,7 @@
 
 	unordered_map<string, Precomp_dt> precomp_st;
 	vector<Precomp_dt> print_l;
+	Precomp_dt last_param;
 
 	typedef struct symbol_table_node
 	{
@@ -51,7 +52,7 @@
 	char* Not(char*);
 %}
 
-%token T_EQUAL T_NOT T_COLON T_STRING T_PRINT T_IDENTIFIER T_NUMBER T_GOTO T_IF T_EQ_OP T_NE_OP T_OR_OP T_AND_OP T_MOD_OP
+%token T_EQUAL T_NOT T_COLON T_STRING T_PRINT T_IDENTIFIER T_NUMBER T_GOTO T_IF T_EQ_OP T_NE_OP T_OR_OP T_AND_OP T_MOD_OP T_PARAM
 
 
 %%
@@ -61,42 +62,48 @@ supreme_start
 	;
 
 start
-	:T_PRINT T_STRING   								{
-															fprintf(opt,"print ( %s )\n",$2);
+	:T_PARAM T_STRING   			{
+															fprintf(opt,"%s %s\n",$1,$2);
 															
 															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																Precomp_dt print_constant;
 																print_constant.type = STRINGVAL;
 																print_constant.value.str_val = $2;
-																print_l.push_back(print_constant);
+																last_param = print_constant;
 															}
 														}
-	|T_PRINT T_NUMBER   								{
-															fprintf(opt,"print ( %s )\n",$2);
+	|T_PARAM T_NUMBER   			{
+															fprintf(opt,"%s %s\n",$1,$2);
 															
 															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																Precomp_dt print_constant;
 																print_constant.type = INTVAL;
 																print_constant.value.i_val = atoi($2);
-																print_l.push_back(print_constant);
+																last_param = print_constant;
 															}
 														}
-	|T_PRINT T_IDENTIFIER   							{
+	|T_PARAM T_IDENTIFIER   	{
 															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($2);
 																auto precomp_data = precomp_st.find(identifier);
 																if (precomp_data != precomp_st.end()) {
-																	print_l.push_back(precomp_data -> second);
+																	last_param = precomp_data -> second;
 																}
 															}
 
 															if(stop_prop)
 															{
-																fprintf(opt,"print ( %s )\n",$2);
+																fprintf(opt,"%s %s\n",$1,$2);
 															}
 															else
 															{
-																fprintf(opt,"print ( %s )\n",getVal($2));
+																fprintf(opt,"%s %s\n",$1,getVal($2));
+															}
+														}
+	|T_PRINT									{
+															fprintf(opt, "%s\n", $1);
+															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
+																print_l.push_back(last_param);
 															}
 														}
 	|T_NOT T_IDENTIFIER	T_IDENTIFIER  					{
@@ -384,9 +391,9 @@ int main(int argc, char **argv)
 		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
 			Precomp_dt data = *iter;
 			if (data.type == STRINGVAL) {
-				fprintf(super_opt_file, "= t %s\nprint ( t )\n", data.value.str_val);
+				fprintf(super_opt_file, "param %s\ncall (print,1)\n", data.value.str_val);
 			} else {
-				fprintf(super_opt_file, "= t %d\nprint ( t )\n", data.value.i_val);
+				fprintf(super_opt_file, "param %d\ncall (print,1)\n", data.value.i_val);
 			}
 		}
 

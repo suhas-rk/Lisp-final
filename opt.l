@@ -38,7 +38,8 @@ id          ("$"|"t"|"_"|{letter})({letter}|{digit}|"-")*
 
 "GOTO"				        {yylval = strdup(yytext);return T_GOTO;}
 "if"			            {yylval = strdup(yytext);return T_IF;}
-"print"                     {yylval = strdup(yytext);return T_PRINT;}
+"param"                     {yylval = strdup(yytext);return T_PARAM;}
+"call (print,1)"            {yylval = strdup(yytext);return T_PRINT;}
 
 {number}	    	        {yylval = strdup(yytext);return T_NUMBER;} 
 \"({letter}|" "|{digit})*\" {yylval = strdup(yytext);return(T_STRING);}

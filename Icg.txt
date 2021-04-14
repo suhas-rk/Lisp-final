@@ -97,3 +97,7 @@ GOTO _EXIT8
 _L12 :
  =  1  $result 
 _EXIT8 :
+param "Value of result is" 
+call (print,1)
+param $result 
+call (print,1)

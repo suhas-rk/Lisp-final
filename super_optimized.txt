@@ -1,0 +1,4 @@
+param "Value of result is"
+call (print,1)
+param 0
+call (print,1)

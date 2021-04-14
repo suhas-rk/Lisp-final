@@ -28,5 +28,6 @@
     (setq result 1)
 )
 
-
+( print "Value of result is" )
+(print result)
 
