@@ -384,9 +384,9 @@ int main(int argc, char **argv)
 		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
 			Precomp_dt data = *iter;
 			if (data.type == STRINGVAL) {
-				fprintf(super_opt_file, "print %s\n", data.value.str_val);
+				fprintf(super_opt_file, "= t %s\nprint ( t )\n", data.value.str_val);
 			} else {
-				fprintf(super_opt_file, "print %d\n", data.value.i_val);
+				fprintf(super_opt_file, "= t %d\nprint ( t )\n", data.value.i_val);
 			}
 		}
 
