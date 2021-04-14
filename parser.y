@@ -401,7 +401,7 @@ int main(int argc, char *argv[]) {
     icg_exit = 0;
     icg_temp = 0;
     icg_switch_nesting = -1;
-	icg_file = fopen("Icg.txt", "w");
+	icg_file = fopen("ic.3ac", "w");
     temp_file = fopen(TEMP_FILE_LOCATION, "w");
     cp_icg_file = NULL;
     if(yyparse()==1)
@@ -414,7 +414,7 @@ int main(int argc, char *argv[]) {
         display();
         generate_code(ast_root);
 		printf("\n-----------------------------------\n");
-        printf("LISP Code Converted to Intermediate Code\nPlease check Icg.txt for the Intermediate Code");
+        printf("LISP Code Converted to Intermediate Code\nPlease check ic.3ac for the Intermediate Code");
         printf("\n-----------------------------------\n");
         preorder_traversal(ast_root);
 	}

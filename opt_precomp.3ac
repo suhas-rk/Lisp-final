@@ -1,0 +1,4 @@
+param "Value of e is"
+call (print,1)
+param 15
+call (print,1)

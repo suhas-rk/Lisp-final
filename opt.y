@@ -380,15 +380,15 @@ int main(int argc, char **argv)
 				nasm_enabled = 1;
 			}
 	}
-	opt = fopen("Optimize.txt", "w");
+	opt = fopen("opt.3ac", "w");
 	if(!yyparse())
 	{	printf("-----------------------------------------------------------------\n");
-		printf("Intermediate Code Optimized\nPlease check Optimize.txt for the Optimized IC");
+		printf("Intermediate Code Optimized\nPlease check opt.3ac for the Optimized IC");
 		printf("\n-----------------------------------------------------------------\n");
 	}
 
 	if (op_enabled) {
-		FILE* super_opt_file = fopen("super_optimized.txt", "w");
+		FILE* super_opt_file = fopen("opt_precomp.3ac", "w");
 
 		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
 			Precomp_dt data = *iter;
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
 
 		fclose(super_opt_file);
 		printf("\n-----------------------------------------------------------------\n");
-		printf("Intermediate Code - Super Optimized\nPlease check super_optimized.txt for the Super Optimized IC.");
+		printf("Intermediate Code - Super Optimized\nPlease check opt_precomp.3ac for the Super Optimized IC.");
 		printf("\n-----------------------------------------------------------------\n");
 	}
 

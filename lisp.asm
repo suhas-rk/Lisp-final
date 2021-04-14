@@ -9,5 +9,5 @@ main:
 	call puts
 	ret
 	section .data
-message0: db "Value of result is", 0
-message1: db "0", 0
+message0: db "Value of e is", 0
+message1: db "15", 0
