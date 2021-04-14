@@ -65,7 +65,7 @@
 %token<boolVal> T_bool_val
 %token<id> T_id
 %token<str> T_str
-%token T_print T_setq T_if T_case
+%token T_print T_setq T_if T_case T_geq T_leq
 
 %left '>' '<' '='
 %left '+' '-' 
@@ -298,15 +298,15 @@ LOGICAL_OP          : AND_OP                        {
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                      ;
-       GREATER_EQUAL : '(' ">=" EXP EXP ')'         {
+       GREATER_EQUAL : '(' T_geq EXP EXP ')'         {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "=");
+                                                        strcpy(temp, ">=");
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                      ;
-       SMALLER_EQUAL : '(' "<=" EXP EXP ')'         {
+       SMALLER_EQUAL : '(' T_leq EXP EXP ')'         {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "=");
+                                                        strcpy(temp, "<=");
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                     ;
@@ -451,7 +451,7 @@ int generate_code(ASTNode *root)
             }
             fprintf(icg_file, "call (print,1)\n");
         }
-        else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0)
+        else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0 || strcmp(root->ope, "<=") == 0 || strcmp(root->ope, ">=") == 0)
         {
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);

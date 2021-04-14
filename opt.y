@@ -52,7 +52,7 @@
 	char* Not(char*);
 %}
 
-%token T_EQUAL T_NOT T_COLON T_STRING T_PRINT T_IDENTIFIER T_NUMBER T_GOTO T_IF T_EQ_OP T_NE_OP T_OR_OP T_AND_OP T_MOD_OP T_PARAM
+%token T_EQUAL T_NOT T_COLON T_STRING T_PRINT T_IDENTIFIER T_NUMBER T_GOTO T_IF T_EQ_OP T_NE_OP T_OR_OP T_AND_OP T_MOD_OP T_PARAM T_GR_EQ T_LT_EQ
 
 
 %%
@@ -359,6 +359,8 @@ opr
 	|T_NE_OP
 	|T_OR_OP
 	|T_AND_OP
+	|T_GR_EQ
+	|T_LT_EQ
 	;
 %%
 
@@ -505,6 +507,10 @@ char* calculate(char* opr,char* op1,char* op2)
 		res = oper1 > oper2;
 	if(strcmp(opr,"<")==0)
 		res = oper1 < oper2;
+	if(strcmp(opr,">=")==0)
+		res = oper1 >= oper2;
+	if(strcmp(opr,"<=")==0)
+		res = oper1 <= oper2;
 	if(strcmp(opr,"%")==0)
 		res = oper1 % oper2;
 	if(strcmp(opr,"==")==0)
@@ -536,6 +542,10 @@ int calculate_val(char* opr, int oper1, int oper2)
 		res = oper1 > oper2;
 	if(strcmp(opr,"<")==0)
 		res = oper1 < oper2;
+	if(strcmp(opr,">=")==0)
+		res = oper1 >= oper2;
+	if(strcmp(opr,"<=")==0)
+		res = oper1 <= oper2;
 	if(strcmp(opr,"%")==0)
 		res = oper1 % oper2;
 	if(strcmp(opr,"==")==0)

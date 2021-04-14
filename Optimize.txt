@@ -74,7 +74,7 @@ _EXIT7 :
 + $a 10 t15
 = t15 $b
 = $b $c
-> $c 16 t16
+>= $c 16 t16
 if t16 
 GOTO _L11
 GOTO _L12

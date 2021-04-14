@@ -54,8 +54,8 @@ operator   [#*;@!%&]
 ">"                         { if(!comment_open) return(yytext[0]); }
 "<"                         { if(!comment_open) return(yytext[0]); }
 "="                         { if(!comment_open) return(yytext[0]); }
-"<="                        { if(!comment_open) return(yytext[0]); }
-">="                        { if(!comment_open) return(yytext[0]); }
+"<="                        { if(!comment_open) return(T_leq); }
+">="                        { if(!comment_open) return(T_geq); }
 "'"                         { if(!comment_open) return(yytext[0]); }
 "("                         {   
                                 if(!comment_open) {

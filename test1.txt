@@ -23,7 +23,7 @@
 
 (setq b (+ a 10))
 (setq c b)
-(if (> c 16)
+(if (>= c 16)
     (setq result 0)
     (setq result 1)
 )

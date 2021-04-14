@@ -30,6 +30,8 @@ id          ("$"|"t"|"_"|{letter})({letter}|{digit}|"-")*
 "%"			    	        {yylval = strdup(yytext);return T_MOD_OP; }
 "<"					        {yylval = strdup(yytext);return('<'); }
 ">"					        {yylval = strdup(yytext);return('>'); }
+">="					    {yylval = strdup(yytext);return T_GR_EQ; }
+"<="					    {yylval = strdup(yytext);return T_LT_EQ; }
 "=="				        {yylval = strdup(yytext);return T_EQ_OP;} 
 "||"				        {yylval = strdup(yytext);return T_OR_OP;} 
 "&&"				        {yylval = strdup(yytext);return T_AND_OP;}
