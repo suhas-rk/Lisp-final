@@ -761,7 +761,7 @@ void print_code(ASTNode *root)
                 break;
         case 2: 
                 // if(!print_id_value(root->id))
-                fprintf(icg_file, " %s ", root->id);
+                fprintf(icg_file, " $%s ", root->id);
                 break;
         case 3:
                 fprintf(icg_file, " %d ", root->num_value);

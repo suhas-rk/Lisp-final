@@ -13,7 +13,7 @@ separator   [ \t\n\r]
 letter      [a-zA-Z]
 digit       [0-9]
 number      0|[1-9]{digit}*|-[1-9]{digit}*
-id          ("_"|{letter})({letter}|{digit}|"-")*
+id          ("$"|"t"|"_"|{letter})({letter}|{digit}|"-")*
 
 %%
 
