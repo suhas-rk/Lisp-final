@@ -1,6 +1,6 @@
-t = "Value of e is"
+= "Value of e is" t
 param t
 call (print,1)
-t = 15
+= 15 t
 param t
 call (print,1)
