@@ -104,7 +104,7 @@ operator   [#*;@!%&]
 ";".*			            { ; }
 "#\|"                        { comment_open = 1; }
 "\|#"                        { comment_open = 0; }
-.                           { printf("%s\n", yytext); insert(ERROR_TOKEN); }
+.                           { printf("Syntax error at line: %d\n", line_number); insert(ERROR_TOKEN); }
 %%
 
 void insert(char *id)

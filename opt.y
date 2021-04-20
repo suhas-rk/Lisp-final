@@ -393,9 +393,9 @@ int main(int argc, char **argv)
 		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
 			Precomp_dt data = *iter;
 			if (data.type == STRINGVAL) {
-				fprintf(super_opt_file, "param %s\ncall (print,1)\n", data.value.str_val);
+				fprintf(super_opt_file, "t = %s\nparam t\ncall (print,1)\n", data.value.str_val);
 			} else {
-				fprintf(super_opt_file, "param %d\ncall (print,1)\n", data.value.i_val);
+				fprintf(super_opt_file, "t = %d\nparam t\ncall (print,1)\n", data.value.i_val);
 			}
 		}
 
@@ -419,7 +419,7 @@ int main(int argc, char **argv)
 			if (data.type == INTVAL) {
 				fprintf(nasm_file, "message%d: db \"%d\", 0\n", i, data.value.i_val);
 			} else {
-				fprintf(nasm_file, "message%d: db %s, 0\n", i, data.value.str_val);
+				fprintf(nasm_file, "message%d: db 34, %s, 34, 0\n", i, data.value.str_val);
 			}
 		}
 
