@@ -27,39 +27,68 @@ _L3 :
 <= $d 0 t8
 if t8 
 GOTO _L4
-GOTO _EXIT2
+GOTO _L5
 _L4 :
 == $b 14 t9
 if t9 
-GOTO _L5
+GOTO _L6
 == $b 15 t10
 if t10 
-GOTO _L6
-GOTO _EXIT3
-_L5 :
-= 10 $e
+GOTO _L7
 GOTO _EXIT3
 _L6 :
+= 10 $e
+GOTO _EXIT3
+_L7 :
 == $c 2 t11
 if t11 
-GOTO _L7
+GOTO _L8
 == $c 3 t12
 if t12 
-GOTO _L8
-GOTO _EXIT4
-_L7 :
-= 15 $e
+GOTO _L9
 GOTO _EXIT4
 _L8 :
+= 15 $e
+GOTO _EXIT4
+_L9 :
 = 17 $e
 GOTO _EXIT4
 _EXIT4 :
 GOTO _EXIT3
 _EXIT3 :
+GOTO _EXIT2
+_L5 :
+param "Here"
+call (print,1)
 _EXIT2 :
 GOTO _EXIT1
 _EXIT1 :
+== $e 15 t13
+if t13 
+GOTO _L10
+GOTO _L11
+_L10 :
+param "E is 15"
+call (print,1)
+GOTO _EXIT5
+_L11 :
+param "E is not 15"
+call (print,1)
+_EXIT5 :
 param "Value of e is"
 call (print,1)
 param $e
 call (print,1)
+param "Printing constant integer"
+call (print,1)
+param 10
+call (print,1)
+= 14 $check
+== $check 14 t14
+if t14 
+GOTO _L12
+GOTO _EXIT6
+_L12 :
+param "Check is 14"
+call (print,1)
+_EXIT6 :

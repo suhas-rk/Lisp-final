@@ -1,6 +1,18 @@
+= "E is 15" t
+param t
+call (print,1)
 = "Value of e is" t
 param t
 call (print,1)
-= 15 t
+= 15 $e
+param $e
+call (print,1)
+= "Printing constant integer" t
+param t
+call (print,1)
+= 10 t
+param t
+call (print,1)
+= "Check is 14" t
 param t
 call (print,1)

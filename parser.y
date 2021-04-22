@@ -404,10 +404,12 @@ int main(int argc, char *argv[]) {
 	icg_file = fopen("ic.3ac", "w");
     temp_file = fopen(TEMP_FILE_LOCATION, "w");
     cp_icg_file = NULL;
+    int ret_code = 0;
     if(yyparse()==1)
 	{
         // display();
 		printf("Parsing failed\n");
+        ret_code = 1;
 	}
 	else
 	{
@@ -429,7 +431,7 @@ int main(int argc, char *argv[]) {
     // printf("Printing IC:\n\n");
 	// system("cat icg.txt");
     printf("\n\n");
-    return(0);
+    return ret_code;
 }
 
 int generate_code(ASTNode *root)

@@ -5,6 +5,7 @@
 	#include <string>
 	#include <unordered_map>
 	#include <vector>
+	#include <utility>
 
 	using namespace std;
 
@@ -28,8 +29,10 @@
 	} Precomp_dt;
 
 	unordered_map<string, Precomp_dt> precomp_st;
-	vector<Precomp_dt> print_l;
-	Precomp_dt last_param;
+	vector<pair<string,Precomp_dt>> print_l;
+	pair<string,Precomp_dt> last_param;
+
+	int found_error = 0;
 
 	typedef struct symbol_table_node
 	{
@@ -69,7 +72,7 @@ start
 																Precomp_dt print_constant;
 																print_constant.type = STRINGVAL;
 																print_constant.value.str_val = $2;
-																last_param = print_constant;
+																last_param = make_pair("t", print_constant);
 															}
 														}
 	|T_PARAM T_NUMBER   			{
@@ -79,7 +82,7 @@ start
 																Precomp_dt print_constant;
 																print_constant.type = INTVAL;
 																print_constant.value.i_val = atoi($2);
-																last_param = print_constant;
+																last_param = make_pair("t", print_constant);
 															}
 														}
 	|T_PARAM T_IDENTIFIER   	{
@@ -87,7 +90,10 @@ start
 																string identifier($2);
 																auto precomp_data = precomp_st.find(identifier);
 																if (precomp_data != precomp_st.end()) {
-																	last_param = precomp_data -> second;
+																	last_param = make_pair(identifier, precomp_data -> second);
+																} else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\nFound at:\n\t(print %s)\n", $2 + 1, $2 + 1);
 																}
 															}
 
@@ -122,6 +128,15 @@ start
 																		not_constant.value.i_val = ((strcmp(data.value.str_val, "\"\""))? 0: 1);
 																	}
 																	precomp_st[identifier2] = not_constant;
+																} else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\n", $2 + 1);
+																	
+																	// Assign a dummy value to lvalue to stop error propagation
+																	Precomp_dt int_constant;
+																	int_constant.type = INTVAL;
+																	int_constant.value.i_val = 0;
+																	precomp_st[identifier2] = int_constant;
 																}
 															}
 															
@@ -129,6 +144,9 @@ start
 															fprintf(opt,"! %s %s\n",$2,$3);
 														}
 	|T_EQUAL T_STRING T_IDENTIFIER  					{
+															if ($3[0] != 't') {
+																printf("\nWARNING:\nAssigning strings to variable is not supported by common LISP standards.\nThis is an experimental feature\n");
+															}
 															if ((nasm_enabled || op_enabled) && !ignore_until_label) {
 																string identifier($3);
 																Precomp_dt str_constant;
@@ -175,6 +193,15 @@ start
 																auto precomp_data = precomp_st.find(identifier1);
 																if (precomp_data != precomp_st.end()) {
 																	precomp_st[identifier2] = precomp_data -> second;
+																}  else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\n", $2 + 1);
+
+																	// Assign a dummy value to lvalue to stop error propagation
+																	Precomp_dt int_constant;
+																	int_constant.type = INTVAL;
+																	int_constant.value.i_val = 0;
+																	precomp_st[identifier2] = int_constant;
 																}
 															}
 
@@ -194,7 +221,7 @@ start
 																string identifier1($2);
 																string identifier2($3);
 																auto precomp_data1 = precomp_st.find(identifier1);
-																auto precomp_data2 = precomp_st.find(identifier1);
+																auto precomp_data2 = precomp_st.find(identifier2);
 																if (precomp_data1 != precomp_st.end() && precomp_data2 != precomp_st.end()) {
 																	Precomp_dt data1 = precomp_data1 -> second;
 																	Precomp_dt data2 = precomp_data2 -> second;
@@ -210,7 +237,28 @@ start
 																		precomp_st[identifier3] = int_constant;
 																	} else {
 																		string identifier3($4);
-																		precomp_st[identifier3] = data1;
+																		if (data1.type == INTVAL) {
+																			printf("\nWARNING: Arithmetic operation on string and integer will ignore string and directly return the integer\n");
+																			precomp_st[identifier3] = data1;
+																		} else if (data2.type == INTVAL) {
+																			printf("\nWARNING: Arithmetic operation on string and integer will ignore string and directly return the integer\n");
+																			precomp_st[identifier3] = data2;
+																		} else {
+																			printf("\nWARNING: Arithmetic operation on string and string will return integer 0.\n");
+																			Precomp_dt int_constant;
+																			int_constant.type = INTVAL;
+																			int_constant.value.i_val = 0;
+																			precomp_st[identifier3] = int_constant;
+																		}
+																	}
+																} else {
+																	found_error += 1;
+																	if (precomp_data1 == precomp_st.end()) {
+																		printf("\nERROR:\n%s was used before initializing!\n", $2 + 1);
+																	}
+																	
+																	if (precomp_data2 == precomp_st.end()) {
+																		printf("\nERROR:\n%s was used before initializing!\n", $3 + 1);
 																	}
 																}
 															}
@@ -239,11 +287,15 @@ start
 																		int i1 = data.value.i_val;
 																		int_constant.value.i_val = calculate_val($1, ival, i1);
 																	} else {
+																		printf("\nWARNING: Arithmetic operation on string and integer will ignore string and directly return the integer\n");
 																		int_constant.value.i_val = ival;
 																	}
 
 																	string identifier2($4);
 																	precomp_st[identifier2] = int_constant;
+																}  else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\n", $3 + 1);
 																}
 															}
 
@@ -271,11 +323,15 @@ start
 																		int i1 = data.value.i_val;
 																		int_constant.value.i_val = calculate_val($1, i1, ival);
 																	} else {
+																		printf("\nWARNING:\nArithmetic operation on string and integer will ignore string and directly return the integer\n");
 																		int_constant.value.i_val = ival;
 																	}
 
 																	string identifier2($4);
 																	precomp_st[identifier2] = int_constant;
+																}  else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\n", $2 + 1);
 																}
 															}
 
@@ -330,6 +386,9 @@ start
 																		ignore_until_label = 1;
 																		next_label = $4;
 																	} 
+																} else {
+																	found_error += 1;
+																	printf("\nERROR:\n%s was used before initializing!\nUsed at:\n(if %s\n", $2 + 1, $2 + 1);
 																}
 															}
 															stop_prop = 1;
@@ -381,21 +440,24 @@ int main(int argc, char **argv)
 			}
 	}
 	opt = fopen("opt.3ac", "w");
-	if(!yyparse())
+
+	if(!found_error && !yyparse())
 	{	printf("-----------------------------------------------------------------\n");
 		printf("Intermediate Code Optimized\nPlease check opt.3ac for the Optimized IC");
 		printf("\n-----------------------------------------------------------------\n");
 	}
 
-	if (op_enabled) {
+	if (!found_error && op_enabled) {
 		FILE* super_opt_file = fopen("opt_precomp.3ac", "w");
 
 		for (auto iter = print_l.begin(); iter != print_l.end(); ++iter) {
-			Precomp_dt data = *iter;
+			pair<string,Precomp_dt> pair_data = *iter;
+			const char* id = pair_data.first.c_str();
+			Precomp_dt data = pair_data.second;
 			if (data.type == STRINGVAL) {
-				fprintf(super_opt_file, "= %s t\nparam t\ncall (print,1)\n", data.value.str_val);
+				fprintf(super_opt_file, "= %s %s\nparam %s\ncall (print,1)\n", data.value.str_val, id, id);
 			} else {
-				fprintf(super_opt_file, "= %d t\nparam t\ncall (print,1)\n", data.value.i_val);
+				fprintf(super_opt_file, "= %d %s\nparam %s\ncall (print,1)\n", data.value.i_val, id, id);
 			}
 		}
 
@@ -405,7 +467,7 @@ int main(int argc, char **argv)
 		printf("\n-----------------------------------------------------------------\n");
 	}
 
-	if (nasm_enabled) {
+	if (!found_error && nasm_enabled) {
 		FILE* nasm_file = fopen("lisp.asm", "w");
 
 		fprintf(nasm_file, "\tglobal main\n\textern puts\n\n\tsection .text\nmain:\n");
@@ -415,7 +477,7 @@ int main(int argc, char **argv)
 
 		fprintf(nasm_file, "\tret\n\tsection .data\n");
 		for (int i = 0; i < print_l.size(); ++i) {
-			Precomp_dt data = print_l[i];
+			Precomp_dt data = print_l[i].second;
 			if (data.type == INTVAL) {
 				fprintf(nasm_file, "message%d: db \"%d\", 0\n", i, data.value.i_val);
 			} else {
@@ -429,7 +491,13 @@ int main(int argc, char **argv)
 		printf("\n-----------------------------------------------------------------\n");
 	}
 
-	return 1;
+	if (found_error) {
+		printf("\n-----------------------------------------------------------------\n");
+		printf("Code generation failed: Found %d errors.\nPlease resolve errors to generate intermediate code.", found_error);
+		printf("\n-----------------------------------------------------------------\n");
+	}
+
+	return found_error;
 }
 
 void yyerror(const char *msg)

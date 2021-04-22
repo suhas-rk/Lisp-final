@@ -1,7 +1,7 @@
 (setq a (+ 5 3))
 (setq b (* 5 3))
 (setq c (- 5 3))
-(setq d (and T F))
+(setq d (and 1 0))
 (setq e 100)
 
 (case a
@@ -16,9 +16,25 @@
                     )
                 )
             )
+            (print "Here")
         )
     )
 )
 
+(if (= e 15)
+    (print "E is 15")
+    (print "E is not 15")
+)
+
+
 (print "Value of e is")
 (print e)
+
+(print "Printing constant integer")
+(print 10)
+
+(setq check 14)
+
+(if (= check 14)
+    (print "Check is 14")
+)
