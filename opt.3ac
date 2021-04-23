@@ -92,3 +92,6 @@ _L12 :
 param "Check is 14"
 call (print,1)
 _EXIT6 :
+= 5 $t1
+param $t1
+call (print,1)

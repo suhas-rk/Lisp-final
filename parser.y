@@ -408,7 +408,7 @@ int main(int argc, char *argv[]) {
     if(yyparse()==1)
 	{
         // display();
-		printf("Parsing failed\n");
+		printf("\nThe program doesn't follow the specification of mini-LISP!\nPlease fix errors / modify the program structure to follow the language specifications.\n");
         ret_code = 1;
 	}
 	else
@@ -443,10 +443,21 @@ int generate_code(ASTNode *root)
             int op0 = generate_code(root->child[0]);
             if( op0 > 0)
             {
+                // Lisp:
+                // (print "Hello")
+                //
+                // t1 = "Hello"
+                // param t1
+                // call (print,1)
                 fprintf(icg_file, "param t%d\n", op0);
             }
             else
             {
+                // Code:
+                // (print a)
+
+                // param a
+                // call (print,1)
                 fprintf(icg_file, "param");
                 print_code(root->child[0]);
                 fprintf(icg_file, "\n");
@@ -455,6 +466,22 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0 || strcmp(root->ope, "<=") == 0 || strcmp(root->ope, ">=") == 0)
         {
+            // (+ a b)
+            // t1 = a + b
+
+            // (+ 5 7)
+            // t1 = 5
+            // t2 = 7
+            // t3 = t1 + t2
+
+            // (+ a 5)
+            // t1 = 5
+            // t2 = a + t1
+
+            // (+ 5 a)
+            // t1 = 5
+            // t2 = a + t1
+
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -483,6 +510,14 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "=") == 0 )
         {
+            // (= a b)
+            // t1 = (a == b)
+
+            // (= 5 7)
+            // t1 = 5
+            // t2 = 7
+            // t3 = (t1 == t2)
+ 
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -511,6 +546,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "AND") == 0 )
         {
+            // (and a b)
+            // t1 = a && b
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -538,6 +575,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "OR") == 0)
         {
+            // (or a b)
+            // t1 = a || b
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -565,6 +604,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "NOT") == 0)
         {
+            // (! a)
+            // t1 = !a
             int tempvar = ++icg_temp;
             int notvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
@@ -591,6 +632,12 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "SET_STMT") == 0 )
         {
+            // Code: (setq id (+ 5 4))4
+            //
+            // t1 = 5
+            // t2 = 4
+            // t3 = t1 + t2
+            // id = t3
             int op1 = generate_code(root->child[1]);
             
             fprintf(icg_file, " = ");
@@ -607,6 +654,13 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "IF_ELSE_EXP") == 0 )
         {
+            // (if a (stm1) (stm2))
+            // if a goto _L1
+            // <stm2 translated to 3AC>
+            // goto _EXIT1
+            // L1:
+            // <stm1 translated to 3AC>
+            // _EXIT1
             int op1 = generate_code(root->child[0]);
             fprintf(icg_file, "if ");
             if( op1 > 0)
@@ -632,6 +686,11 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "IF_EXP") == 0 )
         {
+            // (if a (stm1))
+            // t1 = !a
+            // if t1 goto _EXIT
+            // <stm1 translated to 3AC>
+            // _EXIT1:
             int op1 = generate_code(root->child[0]);
             fprintf(icg_file, "if ");
             if( op1 > 0)

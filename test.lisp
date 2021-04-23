@@ -38,3 +38,6 @@
 (if (= check 14)
     (print "Check is 14")
 )
+
+(setq t1 5)
+(print t1)

@@ -16,3 +16,6 @@ call (print,1)
 = "Check is 14" t
 param t
 call (print,1)
+= 5 $t1
+param $t1
+call (print,1)
