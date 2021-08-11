@@ -14,6 +14,7 @@
     int line_number;
     int setting_value;
     int currHighest = 0;
+    int ignore_id = 0;
 
     struct row symtab[256];
 
@@ -45,7 +46,7 @@ boolval   T|F
 operator   [#*;@!%&]
 %%
 <<EOF>>                     { if (comment_open) { insert(COMMENT_OPEN_ERROR_TOKEN); }return 0; }
-"\n"                        { line_number++; }
+"\n"                        { ignore_id = 0; line_number++; }
 {separator}                 { ; }
 "+"                         { if(!comment_open) return(yytext[0]); }
 "-"                         { if(!comment_open) return(yytext[0]); }
@@ -54,8 +55,8 @@ operator   [#*;@!%&]
 ">"                         { if(!comment_open) return(yytext[0]); }
 "<"                         { if(!comment_open) return(yytext[0]); }
 "="                         { if(!comment_open) return(yytext[0]); }
-"<="                        { if(!comment_open) return(yytext[0]); }
-">="                        { if(!comment_open) return(yytext[0]); }
+"<="                        { if(!comment_open) return(T_leq); }
+">="                        { if(!comment_open) return(T_geq); }
 "'"                         { if(!comment_open) return(yytext[0]); }
 "("                         {   
                                 if(!comment_open) {
@@ -66,6 +67,7 @@ operator   [#*;@!%&]
                             }
 ")"                         {
                                 if(!comment_open) {
+                                ignore_id = 0;
                                 setting_value = 0 ;
                                 int return_value;
                                 if(loop)
@@ -88,7 +90,7 @@ operator   [#*;@!%&]
 {boolval}                  { if(!comment_open) { yylval.id = strdup(yytext) ; set_bool(yytext) ; setting_value = 0 ; if(yytext[0] == 'T') yylval.boolVal = true; else yylval.boolVal = false ; return(T_bool_val); } }
 \"({letter}|" "|{operator}|{digit})*\" { if(!comment_open) { yylval.str = strdup(yytext) ; set_str(yytext) ; setting_value = 0 ;  return(T_str); } }
 {id}                        { 
-                                if(!comment_open) {
+                                if(!comment_open && !ignore_id) {
                                 if(loop == 0)
                                 {
                                     yylval.id = strdup(yytext);
@@ -104,7 +106,7 @@ operator   [#*;@!%&]
 ";".*			            { ; }
 "#\|"                        { comment_open = 1; }
 "\|#"                        { comment_open = 0; }
-.                           { printf("%s\n", yytext); insert(ERROR_TOKEN); }
+.                           { ignore_id = 1; printf("Syntax error at line: %d\n", line_number); insert(ERROR_TOKEN); }
 %%
 
 void insert(char *id)

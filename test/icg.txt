@@ -1,0 +1,28 @@
+= 5 a
+= "Hello" b
+= b c
+= c d
+print d
++ a 7 a
+print a
++ 7 9 a
++ a a a
+= a e
+print e
+GOTO L1
++ a a a
+L1 :
+print a
+if d GOTO L2
+GOTO L3
+L2 :
+* a a a
+L3 :
+print a
+< a 1025 t1
+if t1 GOTO L4
+GOTO L5
+L4 :
+/ a a a
+L5:
+print a

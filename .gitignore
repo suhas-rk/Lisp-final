@@ -3,6 +3,8 @@
 *.yy.* 
 *.tab.*
 *.o
+*.out
 output.txt
 mini-lisp
+lisp-nasm
 *.output

@@ -7,6 +7,13 @@
     #include "ASTTree.hh"
     #include<vector>
     using namespace std;
+
+    #ifdef __linux__
+    #define TEMP_FILE_LOCATION "/dev/null"
+    #else
+    #define TEMP_FILE_LOCATION "temp.txt"
+    #endif
+
     extern "C" {
         extern int yylex();
         void yyerror(const char *message);
@@ -20,11 +27,12 @@
     extern char* ERROR_TOKEN;
     extern char* COMMENT_OPEN_ERROR_TOKEN;
     extern void display();
-    FILE *icg_file;
+    FILE *icg_file, *cp_icg_file, *temp_file;
     ASTNode *ast_root;
-    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_test, icg_case;
-    vector<int> arr1;
-    vector<int> arr2;
+    int icg_line_number, icg_temp, icg_branch, icg_exit, icg_switch_nesting;
+    int icg_case[100], icg_case_exit[100]; 
+    vector<int> arr1[100];
+    vector<int> arr2[100];
     int generate_code(ASTNode *);
     void print_code(ASTNode *);
     int ret_code(ASTNode *);
@@ -57,7 +65,7 @@
 %token<boolVal> T_bool_val
 %token<id> T_id
 %token<str> T_str
-%token T_print T_setq T_if T_case
+%token T_print T_setq T_if T_case T_geq T_leq
 
 %left '>' '<' '='
 %left '+' '-' 
@@ -121,11 +129,6 @@ STMT                : EXP                           {
                                                     } 
                     ;
 PRINT_STMT          : '(' T_print EXP ')'            {
-                                                        char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "PRINT_STMT");
-                                                        $$ = makeNode1(temp, $3);
-                                                    }
-                    | '(' T_print VARIABLE ')'      {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
                                                         strcpy(temp, "PRINT_STMT");
                                                         $$ = makeNode1(temp, $3);
@@ -295,15 +298,15 @@ LOGICAL_OP          : AND_OP                        {
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                      ;
-       GREATER_EQUAL : '(' ">=" EXP EXP ')'         {
+       GREATER_EQUAL : '(' T_geq EXP EXP ')'         {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "=");
+                                                        strcpy(temp, ">=");
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                      ;
-       SMALLER_EQUAL : '(' "<=" EXP EXP ')'         {
+       SMALLER_EQUAL : '(' T_leq EXP EXP ')'         {
                                                         char *temp = (char *)malloc(sizeof(char)*15);
-                                                        strcpy(temp, "=");
+                                                        strcpy(temp, "<=");
                                                         $$ = makeNode2(temp, $3, $4);
                                                     }
                     ;
@@ -396,30 +399,39 @@ int main(int argc, char *argv[]) {
     icg_line_number = 0;
     icg_branch = 0;
     icg_exit = 0;
-    icg_case = 0;
-    icg_test = 0;
     icg_temp = 0;
-	icg_file = fopen("Icg.txt", "w");
+    icg_switch_nesting = -1;
+	icg_file = fopen("ic.3ac", "w");
+    temp_file = fopen(TEMP_FILE_LOCATION, "w");
+    cp_icg_file = NULL;
+    int ret_code = 0;
     if(yyparse()==1)
 	{
         // display();
-		printf("Parsing failed\n");
+		printf("\nThe program doesn't follow the specification of mini-LISP!\nPlease fix errors / modify the program structure to follow the language specifications.\n");
+        ret_code = 1;
 	}
 	else
 	{
         display();
         generate_code(ast_root);
 		printf("\n-----------------------------------\n");
-        printf("LISP Code Converted to Intermediate Code\nPlease check Icg.txt for the Intermediate Code");
+        printf("LISP Code Converted to Intermediate Code\nPlease check ic.3ac for the Intermediate Code");
         printf("\n-----------------------------------\n");
         preorder_traversal(ast_root);
 	}
 
 	fclose(icg_file);
+    fclose(temp_file);
+
+#ifndef __linux__
+    remove(TEMP_FILE_LOCATION);
+#endif
+
     // printf("Printing IC:\n\n");
 	// system("cat icg.txt");
     printf("\n\n");
-    return(0);
+    return ret_code;
 }
 
 int generate_code(ASTNode *root)
@@ -429,19 +441,47 @@ int generate_code(ASTNode *root)
         if( strcmp(root->ope, "PRINT_STMT") == 0 )
         {
             int op0 = generate_code(root->child[0]);
-            fprintf(icg_file, "print ( ");
             if( op0 > 0)
             {
-                fprintf(icg_file, "t%d", op0);
+                // Lisp:
+                // (print "Hello")
+                //
+                // t1 = "Hello"
+                // param t1
+                // call (print,1)
+                fprintf(icg_file, "param t%d\n", op0);
             }
             else
             {
+                // Code:
+                // (print a)
+
+                // param a
+                // call (print,1)
+                fprintf(icg_file, "param");
                 print_code(root->child[0]);
+                fprintf(icg_file, "\n");
             }
-            fprintf(icg_file, " )\n");
+            fprintf(icg_file, "call (print,1)\n");
         }
-        else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0)
+        else if( strcmp(root->ope, "+") == 0 || strcmp(root->ope, "-") == 0 || strcmp(root->ope, "*") == 0 || strcmp(root->ope, "/") == 0 || strcmp(root->ope, "%") == 0 || strcmp(root->ope, "<") == 0 || strcmp(root->ope, ">") == 0 || strcmp(root->ope, "<=") == 0 || strcmp(root->ope, ">=") == 0)
         {
+            // (+ a b)
+            // t1 = a + b
+
+            // (+ 5 7)
+            // t1 = 5
+            // t2 = 7
+            // t3 = t1 + t2
+
+            // (+ a 5)
+            // t1 = 5
+            // t2 = a + t1
+
+            // (+ 5 a)
+            // t1 = 5
+            // t2 = a + t1
+
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -470,6 +510,14 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "=") == 0 )
         {
+            // (= a b)
+            // t1 = (a == b)
+
+            // (= 5 7)
+            // t1 = 5
+            // t2 = 7
+            // t3 = (t1 == t2)
+ 
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -498,6 +546,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "AND") == 0 )
         {
+            // (and a b)
+            // t1 = a && b
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -525,6 +575,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "OR") == 0)
         {
+            // (or a b)
+            // t1 = a || b
             int tempvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
             int op1 = generate_code(root->child[1]);
@@ -552,6 +604,8 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "NOT") == 0)
         {
+            // (! a)
+            // t1 = !a
             int tempvar = ++icg_temp;
             int notvar = ++icg_temp;
             int op0 = generate_code(root->child[0]);
@@ -578,6 +632,12 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "SET_STMT") == 0 )
         {
+            // Code: (setq id (+ 5 4))4
+            //
+            // t1 = 5
+            // t2 = 4
+            // t3 = t1 + t2
+            // id = t3
             int op1 = generate_code(root->child[1]);
             
             fprintf(icg_file, " = ");
@@ -594,6 +654,13 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "IF_ELSE_EXP") == 0 )
         {
+            // (if a (stm1) (stm2))
+            // if a goto _L1
+            // <stm2 translated to 3AC>
+            // goto _EXIT1
+            // L1:
+            // <stm1 translated to 3AC>
+            // _EXIT1
             int op1 = generate_code(root->child[0]);
             fprintf(icg_file, "if ");
             if( op1 > 0)
@@ -619,6 +686,11 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "IF_EXP") == 0 )
         {
+            // (if a (stm1))
+            // t1 = !a
+            // if t1 goto _EXIT
+            // <stm1 translated to 3AC>
+            // _EXIT1:
             int op1 = generate_code(root->child[0]);
             fprintf(icg_file, "if ");
             if( op1 > 0)
@@ -642,16 +714,16 @@ int generate_code(ASTNode *root)
         {
             
             int branch = ++icg_branch;
-            icg_case++;
+            icg_case[icg_switch_nesting]++;
             int exit = icg_exit;
             fprintf(icg_file, "\n_L%d :\n", branch);
-            arr2.push_back(branch);
+            arr2[icg_switch_nesting].push_back(branch);
             generate_code(root->child[1]);
-            fprintf(icg_file, "GOTO _EXIT%d\n",exit);
+            fprintf(icg_file, "GOTO _EXIT%d\n", icg_case_exit[icg_switch_nesting]);
             
             int x = ret_code(root->child[0]);
             
-            arr1.push_back(x);
+            arr1[icg_switch_nesting].push_back(x);
             
         }
         else if( strcmp(root->ope, "DIFFCASES") == 0 )
@@ -663,41 +735,63 @@ int generate_code(ASTNode *root)
         }
         else if( strcmp(root->ope, "CASE") == 0 )
         {
+            ++icg_switch_nesting;
             int op1 = generate_code(root->child[0]);
-            arr1.resize(0);
-            arr2.resize(0);
+            arr1[icg_switch_nesting].resize(0);
+            arr2[icg_switch_nesting].resize(0);
             
             int n,x;
             int exit = ++icg_exit;
-            int test = ++icg_test;
-            icg_case=0;
+            icg_case[icg_switch_nesting]=0;
+
+            // Checkpoint state
+            int cp_icg_temp = icg_temp;
+            int cp_icg_branch = icg_branch;
+            int cp_icg_exit = icg_exit;
+            int flag = 0;
+
+            if (cp_icg_file == NULL) {
+                cp_icg_file = icg_file;
+                icg_file = temp_file;
+                flag = 1;
+            }
             
-            fprintf(icg_file, "\nGOTO _TEST%d\n",test);
-            
+            // Generate code to populate arr1 and arr2
             n = root->number_of_children;
             for(int i=0;i < n; i++){
-            
-            generate_code(root->child[i]);
-            
-            
-            
-            
+                generate_code(root->child[i]);
             }
-            n = icg_case;
-            fprintf(icg_file, "\n_TEST%d:\n",test);
+            n = icg_case[icg_switch_nesting];
             
+            if (flag) {
+                icg_file = cp_icg_file;
+                cp_icg_file = NULL;
+            }
+
+            // Restore state
+            icg_temp = cp_icg_temp;
+            icg_branch = cp_icg_branch;
+            icg_exit = cp_icg_exit;
 
             for(int i=0; i < n; i++){
-            fprintf(icg_file, "if ");
-            print_code(root->child[0]);
-            fprintf(icg_file, " = %d:\n",arr1.at(i));
-            fprintf(icg_file, "\tGOTO _L%d\n", arr2[i]);
-            
+                int tempvar = ++icg_temp;
+                fprintf(icg_file, "==");
+                print_code(root->child[0]);
+                fprintf(icg_file, "%d t%d\n", arr1[icg_switch_nesting][i], tempvar);
+                fprintf(icg_file, "if t%d\n\tGOTO _L%d\n", tempvar, arr2[icg_switch_nesting][i]);
             }
+            fprintf(icg_file, "GOTO _EXIT%d\n",exit);
+            
+            icg_case_exit[icg_switch_nesting] = exit;
+            n = root->number_of_children;
+
+            for(int i=0;i < n; i++){
+                generate_code(root->child[i]);
+            }
+            n = icg_case[icg_switch_nesting];
+
             fprintf(icg_file, "\n_EXIT%d :\n", exit);
-            
-            
-            
+            --icg_switch_nesting;
         }
         else
         {
@@ -724,7 +818,7 @@ void print_code(ASTNode *root)
                 break;
         case 2: 
                 // if(!print_id_value(root->id))
-                fprintf(icg_file, " %s ", root->id);
+                fprintf(icg_file, " $%s ", root->id);
                 break;
         case 3:
                 fprintf(icg_file, " %d ", root->num_value);
@@ -763,6 +857,8 @@ int ret_code(ASTNode *root)
                 fprintf(icg_file, "%s", root->str_value);
                 break;
     }
+
+    return 0;
 }
 
 

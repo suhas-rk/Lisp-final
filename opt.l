@@ -1,7 +1,10 @@
 %{
 	#define YYSTYPE char*
 	#include "y.tab.h"
-    #include <stdio.h>
+    #include <cstdio>
+
+    using namespace std;
+
     extern void yyerror(const char *);
     int line = 1;
 %}
@@ -10,7 +13,7 @@ separator   [ \t\n\r]
 letter      [a-zA-Z]
 digit       [0-9]
 number      0|[1-9]{digit}*|-[1-9]{digit}*
-id          ("_"|{letter})({letter}|{digit}|"-")*
+id          ("$"|"t"|"_"|{letter})({letter}|{digit}|"-")*
 
 %%
 
@@ -27,6 +30,8 @@ id          ("_"|{letter})({letter}|{digit}|"-")*
 "%"			    	        {yylval = strdup(yytext);return T_MOD_OP; }
 "<"					        {yylval = strdup(yytext);return('<'); }
 ">"					        {yylval = strdup(yytext);return('>'); }
+">="					    {yylval = strdup(yytext);return T_GR_EQ; }
+"<="					    {yylval = strdup(yytext);return T_LT_EQ; }
 "=="				        {yylval = strdup(yytext);return T_EQ_OP;} 
 "||"				        {yylval = strdup(yytext);return T_OR_OP;} 
 "&&"				        {yylval = strdup(yytext);return T_AND_OP;}
@@ -35,7 +40,8 @@ id          ("_"|{letter})({letter}|{digit}|"-")*
 
 "GOTO"				        {yylval = strdup(yytext);return T_GOTO;}
 "if"			            {yylval = strdup(yytext);return T_IF;}
-"print"                     {yylval = strdup(yytext);return T_PRINT;}
+"param"                     {yylval = strdup(yytext);return T_PARAM;}
+"call (print,1)"            {yylval = strdup(yytext);return T_PRINT;}
 
 {number}	    	        {yylval = strdup(yytext);return T_NUMBER;} 
 \"({letter}|" "|{digit})*\" {yylval = strdup(yytext);return(T_STRING);}
@@ -44,3 +50,8 @@ id          ("_"|{letter})({letter}|{digit}|"-")*
 .					        { printf("No Match, Invalid Expression %s\n", yytext); }
 
 %%
+
+int yywrap()
+{
+    return(1);
+}
