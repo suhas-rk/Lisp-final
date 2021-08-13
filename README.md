@@ -109,7 +109,7 @@ ELSE_EXP: EXP
 
 ## Instruction to run the program
 
-Clone this repository and execute the following commands to do a dry run to get analytics
+Clone this repository and execute the following command:
 
 ```bash
 ./compile.sh <path to lisp file> 
