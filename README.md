@@ -107,7 +107,7 @@ THAN_EXP: EXP
 ELSE_EXP: EXP 
 ```
 
-### Instruction to run the program
+## Instruction to run the program
 
 Clone this repository and execute the following commands to do a dry run to get analytics
 
